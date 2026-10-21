@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Using data, step 6: your own symbols, and blend modes</title>
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.13/lib/p5.min.js"></script>
+  <style>
+    body { margin: 0; }
+    #map { position: absolute; inset: 0; }
+    #map canvas.p5Canvas { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1;
+                           /* a CSS blend mode blends the whole p5 canvas with the map underneath it */
+                           mix-blend-mode: screen; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+const myMap = new maplibregl.Map({
+  container: 'map',
+  center: [-123.25, 49.26],
+  zoom: 2,
+  style: 'https://tiles.openfreemap.org/styles/dark'
+});
+myMap.addControl(new maplibregl.NavigationControl());
+
+function latLngToPixel(lat, lng) { return myMap.project([lng, lat]); }
+function pixelToLatLng(x, y)     { const ll = myMap.unproject([x, y]); return { lat: ll.lat, lng: ll.lng }; }
+
+let meteorites;
+
+function preload() {
+  meteorites = loadTable('Meteorite_Landings.csv', 'csv', 'header');
+}
+
+function setup() {
+  const canvas = createCanvas(windowWidth, windowHeight);
+  canvas.parent('map');
+  myMap.on('move', () => redraw());
+  noLoop();
+}
+
+function symbolSize(massInGrams) {
+  return 2 + 38 * sqrt(massInGrams / 60000000);
+}
+
+function draw() {
+  clear();
+  // A p5 blend mode blends the symbols with EACH OTHER: with ADD, where finds pile up
+  // the colours add and the pile glows. (It does not reach the map: that is a separate canvas.)
+  blendMode(ADD);
+  const bounds = myMap.getBounds();
+  for (let i = 0; i < meteorites.getRowCount(); i++) {
+    const lat = meteorites.getNum(i, 'reclat');
+    const lng = meteorites.getNum(i, 'reclong');
+    if (!bounds.contains([lng, lat])) continue;
+    const pos = latLngToPixel(lat, lng);
+    const size = symbolSize(meteorites.getNum(i, 'mass (g)'));
+    if (meteorites.getString(i, 'fall') === 'Fell') {
+      // seen falling: a ring, so the fall's location stays readable under the glow
+      noFill();
+      stroke(255, 200, 80);
+      strokeWeight(1.5);
+      ellipse(pos.x, pos.y, size + 4, size + 4);
+    } else {
+      // found later: a soft additive disc; two on top of each other are twice as bright
+      noStroke();
+      fill(60, 120, 255, 70);
+      ellipse(pos.x, pos.y, size + 2, size + 2);
+    }
+  }
+  blendMode(BLEND);   // back to normal compositing for the legend
+  let school = latLngToPixel(40.66, -73.985);
+  fill(255);
+  stroke(0);
+  strokeWeight(2);
+  ellipse(school.x, school.y, 14, 14);
+  noStroke();
+  textSize(14);
+  text('my school', school.x + 12, school.y + 5);
+
+  drawLegend();
+}
+
+function drawLegend() {
+  const x = 20, y = height - 70;
+  noStroke();
+  fill(0, 0, 0, 170);
+  rect(x - 10, y - 30, 340, 140, 6);
+  fill(255);
+  textSize(13);
+  text("Meteorites in NASA's catalogue (area follows mass)", x, y - 10);
+  noFill(); stroke(255, 200, 80); strokeWeight(1.5);
+  ellipse(x + 8, y + 12, 12, 12);
+  noStroke(); fill(255);
+  text('seen falling ("Fell")', x + 24, y + 16);
+  fill(60, 120, 255, 200);
+  ellipse(x + 8, y + 36, 12, 12);
+  fill(255);
+  text('found later ("Found"); brighter where finds pile up', x + 24, y + 40);
+  text('Note - a lack of data in a given area does not mean there are no meteors in that area; rather that no meteors have been observed or found there', x + 24, y - 40); 
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  redraw();
+}
+</script>
+</body>
+</html>
