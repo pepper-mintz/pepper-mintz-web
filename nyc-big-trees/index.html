@@ -5,10 +5,31 @@
   <title>NYC's Biggest Street Trees</title>
   <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
-  <style> body { margin: 0; } #map { position: absolute; inset: 0; } </style>
+  <style>
+  body { margin: 0; }
+  #map { position: absolute; inset: 0; }
+
+/* i looked at some css basics from course materials and google to figure out the legend */
+    
+  #legend { 
+    position: absolute;
+    bottom: 30px;
+    left: 10px;
+    z-index: 1;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    font: 13px sans-serif;
+  }
+</style>
 </head>
 <body>
   <div id="map"></div>
+  <div id="legend">
+    <!-- calling the legend we defined above  -->
+  <b>Trunk diameter</b> 
+    <!-- that should put the head of the legend in bold -->
+</div>
   <script>
     const map = new maplibregl.Map({
       container: 'map',
