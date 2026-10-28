@@ -63,13 +63,36 @@
     <!-- park piece on legend will be diff from the dots and needs a brief explanation -->
 </div>
   <script>
+    // time to get these popups going. 
     const map = new maplibregl.Map({
       container: 'map',
-      style: 'nyc_tree_draft4.json',
+      style: 'nyctreesdraft6.json',
       center: [-73.95, 40.72],
       zoom: 10
     });
     map.addControl(new maplibregl.NavigationControl());
+    map.on('mousemove', 'nyc-trees-L', hoverTree);
+    map.on('mousemove', 'nyc-trees-XL', hoverTree);
+    map.on('mouseleave', 'nyc-trees-L', leaveTree);
+    map.on('mouseleave', 'nyc-trees-XL', leaveTree);
+    
+    const hoverPopup = new maplibregl.Popup({ closeButton: false });
+    function hoverTree(e) {
+      const tree = e.features[0].properties;
+      if (map.getZoom() >= 13) {
+        hoverPopup.setLngLat(e.features[0].geometry.coordinates);
+        hoverPopup.setHTML(
+          `<b>Tree Diameter (in): </b>${tree.tree_dbh} <br>
+          <b>Common Species Name: </b>${tree.spc_common}<br>
+          <b>${tree.nta_name}, ${tree.borough}</b>`
+        );
+        hoverPopup.addTo(map);
+    }   else {
+        hoverPopup.remove();
+      }
+    }
+    function leaveTree() {
+      hoverPopup.remove();
   </script>
 </body>
 </html>
