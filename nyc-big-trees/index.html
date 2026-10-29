@@ -75,6 +75,8 @@
     map.on('mousemove', 'nyc-trees-XL', hoverTree);
     map.on('mouseleave', 'nyc-trees-L', leaveTree);
     map.on('mouseleave', 'nyc-trees-XL', leaveTree);
+    map.on('mousemove', 'nyc-trees-M', hoverTree);
+    map.on('mousemove', 'nyc-trees-M', leaveTree);
     
     const hoverPopup = new maplibregl.Popup({ closeButton: false });
     function hoverTree(e) {
