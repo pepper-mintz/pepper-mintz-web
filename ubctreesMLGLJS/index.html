@@ -35,13 +35,17 @@
     height: 10px;
     border-radius: 50%;
     margin-right: 6px;
+    body {
+  margin: 0;
+}
   }
 </style>
   </head>
 
   <body>
     <!-- The web map will go in this div element. -->
-    <div style="position: relative; width: 900px; height: 650px;">
+    <!-- i want the map to take most of the screen. google says vh is the visual height of screen. i want to leave room for controls. apparently i can run calc to take 65 pixels off the vh! cool. -->
+    <div style="position: relative; width: 100%; height: calc(100vh - 65px);">
      <div id="mapid" style="width: 100%; height: 100%;"></div>
 
     <div id="legend">
