@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NYC's Biggest Street Trees</title>
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <style>
+  body { margin: 0; }
+  #map { position: absolute; inset: 0; }
+
+/* i looked at some css basics from course materials and youtube to figure out the legend... this took FOREVER*/
+    
+  #legend { 
+    position: absolute;
+    bottom: 30px;
+    left: 10px;
+    z-index: 1;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    font: 13px sans-serif;
+  }
+    #legend div { margin-top: 4px; }
+/* the .dot will be for labeling the color ramp for the tree diameter. the 'dot' is arbitrary. the html below will make a class called
+    dots and there will be a few of them, theyll be identical besides color, so i wont define that here (but the park label is one
+    colour, so ill define it right now. border radius at 50 draws a circle (cuts the corners off a square)
+    im leaving these comments as proof that i understand the code im writing. its also helpful to me just to have my process explained in 
+    plain english. If Prof Bergman reads this, hello! */
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.park {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #d6d1c4;
+  /* here its fine to not have the border radius changed, itll help the parks stand out on the legend too. */
+  /* because this wont change we are only doing 1 park label */
+  margin-right: 6px;
+}
+</style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="legend">
+  <b>Trunk diameter</b>
+    <!-- bolds the trunk diameter text -->
+    <!-- below  -->
+  <div><span class="dot" style="background:#a1d99b"></span>30 in.</div>
+  <div><span class="dot" style="background:#41ab5d"></span>38 in.</div>
+  <div><span class="dot" style="background:#238b45"></span>46 in.</div>
+  <div><span class="dot" style="background:#005a32"></span>56 in. or more</div>
+    <!-- in maputnik i made color interpolate linearly between these 4 hex values, i picked the first and last and then
+    filled in the other two proportionatly. so im copying them here to give
+    the viewer some data-driven context on what they are looking at. -->
+  <div><span class="park"></span>Parks and cemeteries are excluded</div>
+    <!-- park piece on legend will be diff from the dots and needs a brief explanation -->
+</div>
+  <script>
+    // time to get these popups going. 
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'nyc_trees_8.json',
+      center: [-73.95, 40.72],
+      zoom: 10
+    });
+    map.addControl(new maplibregl.NavigationControl());
+    map.on('mousemove', 'nyc-trees-L', hoverTree);
+    map.on('mousemove', 'nyc-trees-XL', hoverTree);
+    map.on('mouseleave', 'nyc-trees-L', leaveTree);
+    map.on('mouseleave', 'nyc-trees-XL', leaveTree);
+    map.on('mousemove', 'nyc-trees-M', hoverTree);
+    map.on('mousemove', 'nyc-trees-M', leaveTree);
+    
+    const hoverPopup = new maplibregl.Popup({ closeButton: false });
+    function hoverTree(e) {
+      const tree = e.features[0].properties;
+      if (map.getZoom() >= 13) {
+        hoverPopup.setLngLat(e.features[0].geometry.coordinates);
+        hoverPopup.setHTML(
+          `<b>Tree Diameter (in): </b>${tree.tree_dbh} <br>
+          <b>Common Species Name: </b>${tree.spc_common}<br>
+          <b>${tree.nta_name}, ${tree.borough}</b>`
+        );
+        hoverPopup.addTo(map);
+    }   else {
+        hoverPopup.remove();
+      }
+    }
+    function leaveTree() {
+      hoverPopup.remove();
+    }
+  </script>
+</body>
+</html>
