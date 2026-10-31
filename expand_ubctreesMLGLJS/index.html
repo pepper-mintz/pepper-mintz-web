@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>Trees and Their Canopies at UBC</title>
+
+    <!-- Load MapLibre's stylesheet (CSS). Its code (JavaScript) is loaded below, in the script. -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.15.0/dist/maplibre-gl.css"
+    />
+    <style>
+  /* Legend for tree type and canopy coverage */
+  #legend {
+  position: absolute;
+  bottom: 35px;
+  right: 15px;
+  z-index: 1;
+  background: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  font: 13px sans-serif;
+  width: 230px;
+}
+
+  #legend div {
+    margin-top: 4px;
+  }
+
+  /* Small colored circles for each tree classification */
+  .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    
+  }
+      body {
+  margin: 0;
+}
+</style>
+  </head>
+
+  <body>
+    <!-- The web map will go in this div element. -->
+    <!-- i want the map to take most of the screen. google says vh is the visual height of screen. i want to leave room for controls. apparently i can run calc to take 65 pixels off the vh! cool. -->
+    <div style="position: relative; width: 100%; height: calc(100vh - 65px);">
+     <div id="mapid" style="width: 100%; height: 100%;"></div>
+
+    <div id="legend">
+  <b>UBC Campus Trees</b>
+
+  <div>
+    <span class="dot" style="background:#9CCB86"></span>
+    Broadleaf / Deciduous
+  </div>
+
+  <div>
+    <span class="dot" style="background:#285943"></span>
+    Coniferous / Evergreen
+  </div>
+
+  <div>
+    <span class="dot" style="background:#999999"></span>
+    Unclassified
+  </div>
+
+    <div style="margin-top:10px;">
+      <p>Canopy mode: circle size represents estimated canopy diameter.</p>
+      <p style="margin-top:8px; margin-bottom:3px;">Note: trees with missing canopy data are excluded.</p>
+    </div>
+    </div> <!-- Closes the legend -->
+    </div> <!-- Closes the map container -->
+
+<!-- controls are now outside the map container -->
+<div id="controls" style="margin: 15px;">
+      <button id="resetMapButton">Reset Map</button>
+
+      <span style="display: inline-block; width: 30px;"></span>
+      <input type="text" id="highlightTreesTextEntry" placeholder="e.g. Quercus">
+      <button id="highlightTreesButton">Highlight</button>
+      <button id="toggleCanopyButton">Toggle Canopy</button>
+    </div>
+
+    <script type="module">
+      // Load MapLibre's code (JavaScript). Version 6 is loaded as a module, with import.
+      import * as maplibregl from 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.15.0/dist/maplibre-gl.mjs';
+
+      // Make a map with new maplibregl.Map(), and keep it in the variable map.
+      const map = new maplibregl.Map({
+        container: 'mapid',                  // the id of the div above
+        center: [-123.256113, 49.265637],    // [longitude, latitude]   
+        zoom: 14,
+        style: 'https://tiles.openfreemap.org/styles/positron'   // a ready-made style from OpenFreeMap
+      });
+
+      // A module keeps its names to itself. This line lets you type map in the console under the code.
+      window.map = map;
+
+      // The raw URL of the UBC Campus Trees file on GitHub.
+      const url = 'https://raw.githubusercontent.com/UBCGeodata/ubc-geospatial-opendata/master/ubcv/landscape/geojson/ubcv_campus_trees.geojson';
+
+      // Paint properties set how the layer draws each circle.
+      // They are kept in a variable, treeMarkerPaint.
+
+      const treeMarkerPaint = {
+
+        
+        'circle-radius': ['interpolate', ['exponential', 1.5], ['zoom'], 13, 1, 17, 6],
+        // A data-driven expression: the colour depends on each tree's TREE_TYPE value.
+        //
+        'circle-color': ['case',
+
+    // If tree is broadleaf
+                         ['match', ['get', 'TREE_TYPE'],
+                          ['Angiosperm', 'Deciduous'], true, false],'#9CCB86',
+
+    // Elif tree is coniferous
+                         ['match', ['get', 'TREE_TYPE'],
+                          ['Coniferous', 'Evergreen'], true, false],'#285943',
+
+    // Elif tree is one of the important unclassified trees with big canopies
+                         ['match', ['get', 'TAXA'],
+                          ['Quercus rubra', 'Quercus rubra ', 'Cornus kousa', 'Cornus kousa ','Acer circinatum', 'Acer circinatum ','Acer palmatum', 'Acer palmatum '], true, false],'#9CCB86',
+                         // Else
+                         '#999999'],
+        'circle-opacity': 0.8};
+      
+      const canopyDiameter = [
+          'case',
+          // both canopies >0
+          [
+            'all',
+            ['>', ['get', 'CROWNWIDTH1'], 0],
+            ['>', ['get', 'CROWNWIDTH2'], 0],
+          ],
+ // if true, average them
+          [
+            '/',
+            ['+',
+             ['get', 'CROWNWIDTH1'],
+             ['get', 'CROWNWIDTH2']],
+            2],
+          // if false, use whichever measurement is available:
+          // if cw1 is better than 0, get it, 
+          //if its not > 0 it doesnt exist so get cw2
+          ['>', ['get', 'CROWNWIDTH1'], 0],
+          ['get', 'CROWNWIDTH1'],
+          ['get', 'CROWNWIDTH2']
+];
+
+      //canopy is in diameter, so we need to half it for circle radius. 
+      //at zoom 14, 3.12 m/p. so canopy radius in pixels = diameter/(3.12)(2)
+
+      
+      // When someone clicks a tree on the map, MapLibre runs this function.
+      // e holds information about the click. e.features[0] is the feature (the tree) that was clicked.
+      function onEachTree(e) {
+        // tree holds that feature's attributes, such as TAXA.
+        const tree = e.features[0].properties;
+        // Does this tree have a TAXA (its scientific name)? If it does not, no popup opens.
+        if (tree.TAXA) {
+          const popup = new maplibregl.Popup();
+          popup.setLngLat(e.lngLat);
+          popup.setText(tree.TAXA + ' ' + tree.DBH + " cm diameter");
+          popup.addTo(map);
+        }
+      }
+
+      // addTrees adds the source, the layer and the click listener. In Trees 9, this code was inside map.on('load', …).
+      function addTrees() {
+        // If the trees are already on the map, stop here.
+        // MapLibre cannot add a second source with the same name.
+        if (map.getSource('trees')) {
+          return;   // don't add trees twice
+        }
+
+        // A source holds the data. data: is the raw URL, so MapLibre fetches the file itself.
+        // The trees appear when the whole file has arrived. Meanwhile, the browser goes on to map.addLayer() straight away.
+        // attribution is the credit in the map's corner.
+        map.addSource('trees', {
+          type: 'geojson',
+          data: url,
+          attribution: 'Trees: UBC Campus Trees, UBCGeodata'
+        });
+
+        // A layer says how to draw a source: here, a circle for each tree.
+        // source: 'trees' is the name that addSource gave the source above.
+        map.addLayer({
+          id: 'trees-canopy',
+          type: 'circle',
+          source: 'trees',
+        //looking for trees with canopy measurements. if it only has one thats fine.
+          filter: [
+            'any',
+            ['>', ['get', 'CROWNWIDTH1'], 0],
+            ['>', ['get', 'CROWNWIDTH2'], 0]
+],
+          paint: {
+            'circle-radius': [
+              'interpolate',
+              ['exponential', 2],
+              ['zoom'],
+              //14, ['/', canopyDiameter, 6.24], is our baseline. but we want to be able to zoom a useful range, some tinkering says 12 and 20 are probably good to start. maplibre pages said exponential interpolation just needs 2 points
+              12, ['*', ['/', canopyDiameter, 6.24], .25],
+              20, ['*', ['/', canopyDiameter, 6.24], 64]],
+            'circle-color': treeMarkerPaint['circle-color'],
+            'circle-opacity': 0.55
+          }
+        });
+        
+
+        //im running into an issue now. i want this map to reflect real canopy coverage, so ill need to convert meters per pixel. but then that has to scale with zoom. zoom is exponential here, zoom 14 is twice as close as 13, etc. luckily interpolation can be done with exponents, not just linear like we've done so far. 
+        //consulting google, at zoom 0 where teh whole world is visible, maplibre sees it as a square thats 512 pixels per edge
+        //earth approx 40 million meters @ equator
+        //so at zoom 0 its 78125 m per pixel
+        //at zoom 15, where our map opens, we need our 78125 to be divided by 2^14. leaves us with 1 pixel as 4.78 meters at the equator
+        //but this is web mercator as per industry standard, so we have some significant distortion to tackle. 
+        //time for trig. the amount of distortion at a given latitude is found using the cosine of that latitude. at ubc we are at 49.265° N. cos (49.265) is approx .653.
+        //as you move up latitudes, the apparent area gets larger (greenland big). that means that one pixel up there represents distance than at the equator. at ubc, its approx 65.3% of the linear distance, or .653^2 for the area we would find at the equator. 
+        //so if zoom 14 is 4.78 m/p at equator, 
+        //zoom 15 at ubc is (.653)(4.78), or aprox 3.12 m/p at ubc
+
+
+        
+        
+        
+        
+        map.addLayer({
+          id: 'trees-circles',
+          type: 'circle',
+          source: 'trees',
+          paint: treeMarkerPaint
+        });
+
+        
+      
+
+        // When a circle of the layer 'trees-circles' is clicked, MapLibre runs onEachTree.
+        // Write onEachTree without (). MapLibre runs it later, once for each click.
+        map.on('click', 'trees-circles', onEachTree);
+
+        // When the mouse moves over a tree, MapLibre runs hoverTree.
+        // When the mouse leaves the trees, MapLibre runs leaveTree.
+        map.on('mousemove', 'trees-circles', hoverTree);
+        map.on('mouseleave', 'trees-circles', leaveTree);
+        map.on('click', 'trees-canopy', onEachTree);
+        map.on('mousemove', 'trees-canopy', hoverTree);
+        map.on('mouseleave', 'trees-canopy', leaveTree);
+        
+      }
+
+      
+      // Show All Trees: draw every tree.
+      function showAllTrees() {
+        addTrees();
+        // Back to the colour and the opacity in treeMarkerPaint.
+        // treeMarkerPaint['circle-color'] is the 'circle-color' value inside treeMarkerPaint.
+        // A name with a hyphen is written this way: in square brackets and quotes.
+        map.setPaintProperty('trees-circles', 'circle-color', treeMarkerPaint['circle-color']);
+        map.setPaintProperty('trees-circles', 'circle-opacity', treeMarkerPaint['circle-opacity']);
+        map.setLayoutProperty('trees-canopy', 'visibility', 'none');
+        map.setLayoutProperty('trees-circles', 'visibility', 'visible');
+      }
+
+      function toggleCanopy(){
+      const visibility = map.getLayoutProperty('trees-canopy', 'visibility');
+
+      if (visibility !== 'none'){
+        map.setLayoutProperty('trees-canopy', 'visibility', 'none');
+        map.setLayoutProperty('trees-circles', 'visibility', 'visible');
+
+        }
+      else {
+        map.setLayoutProperty('trees-canopy', 'visibility', 'visible');
+        map.setLayoutProperty('trees-circles', 'visibility', 'none');
+      }}
+
+      // One popup, used again each time the mouse moves over a tree.
+      const hoverPopup = new maplibregl.Popup({ closeButton: false });
+
+      function hoverTree(e) {
+        const tree = e.features[0].properties;
+        // A tree with no TAXA gets no popup.
+        if (tree.TAXA) {
+          hoverPopup.setLngLat(e.features[0].geometry.coordinates);
+          hoverPopup.setText(tree.TAXA);
+          hoverPopup.addTo(map);
+        } else {
+          hoverPopup.remove();
+        }
+      }
+
+      function leaveTree() {
+        hoverPopup.remove();
+      }
+
+      // Highlight: keep every tree on the map. Colour the trees whose TAXA contains the text in the box.
+      function highlightTrees() {
+        showAllTrees();
+        // .value is the text that is in the box when the button is clicked.
+        const textEntry = document.getElementById('highlightTreesTextEntry');
+        const taxaToHighlight = textEntry.value;
+        if (taxaToHighlight === '') {
+          showAllTrees();
+          return;
+        }
+        // No filter: every tree is drawn.
+        map.setFilter('trees-circles', null);
+        // ['in', text, ['get', 'TAXA']] is true when the text appears in the tree's TAXA.
+        const matches = ['in', taxaToHighlight, ['get', 'TAXA']];
+        // A case expression: MapLibre checks matches for each tree.
+        // If it is true, the tree gets the first value. If it is false, the tree gets the second value.
+        map.setPaintProperty('trees-circles', 'circle-color', ['case', matches, '#ff7f00', '#bbbbbb']);
+        map.setPaintProperty('trees-circles', 'circle-opacity', ['case', matches, 0.9, 0.3]);
+      }
+
+      // Listen to the buttons only after the map's style has loaded.
+      map.on('load', function () {
+        showAllTrees();
+        // Two listeners: each button runs its own function when it is clicked.
+        // Write the function names without (). The browser runs them later, once for each click.
+        const resetMapButton = document.getElementById('resetMapButton');
+        resetMapButton.addEventListener('click', showAllTrees);
+        const highlightButton = document.getElementById('highlightTreesButton');
+        highlightButton.addEventListener('click', highlightTrees);
+        const toggleCanopyButton = document.getElementById('toggleCanopyButton');
+        toggleCanopyButton.addEventListener('click', toggleCanopy)
+      });
+    </script>
+  </body>
+</html>
