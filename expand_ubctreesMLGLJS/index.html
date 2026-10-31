@@ -52,6 +52,10 @@
     <div id="legend">
   <b>UBC Campus Trees</b>
 
+      <div id="firstLegend">
+
+
+      
   <div>
     <span class="dot" style="background:#9CCB86"></span>
     Broadleaf / Deciduous
@@ -66,6 +70,22 @@
     <span class="dot" style="background:#999999"></span>
     Unclassified
   </div>
+      </div>
+      <div id="specialLegend" style="display: none;">
+        <!--the special legend is for highlighted trees. we want it to be invisible until its triggered  -->
+        <div>
+          <span class="dot" style="background:#ff7f00"></span>
+          <!-- just reusing my old dot but with the highlight color -->
+          Matched Trees
+        </div>
+        <div>
+          <span class="dot" style="background:#999999"></span>
+          <!-- same with the unclassified color -->
+          Other trees
+        </div>
+      </div>
+
+        
 
     <div style="margin-top:10px;">
       <p>Canopy mode: circle size represents estimated canopy diameter.</p>
@@ -263,6 +283,9 @@
         map.setPaintProperty('trees-circles', 'circle-opacity', treeMarkerPaint['circle-opacity']);
         map.setLayoutProperty('trees-canopy', 'visibility', 'none');
         map.setLayoutProperty('trees-circles', 'visibility', 'visible');
+        //now just adding the dynamic legend here so that when map is reset the legend gets reset too. 
+        document.getElementByID('firstLegend').style.display = 'block';
+        document.getElementByID('specialLegend').style.display = 'none';
       }
 
       function toggleCanopy(){
@@ -300,6 +323,8 @@
       // Highlight: keep every tree on the map. Colour the trees whose TAXA contains the text in the box.
       function highlightTrees() {
         showAllTrees();
+        
+        
         // .value is the text that is in the box when the button is clicked.
         const textEntry = document.getElementById('highlightTreesTextEntry');
         const taxaToHighlight = textEntry.value;
@@ -307,6 +332,12 @@
           showAllTrees();
           return;
         }
+        // updating to make the legend change dynamically when someone highlights trees
+        //once the highlight function is triggered we want to switch which legend can be seen. 
+        //but also if its an empty string we want that to be taken care of first, so this goes after
+        //i kow how to find the element itself but had to google how to toggle it. (.style.display)
+        document.getElementByID('firstLegend').style.display = 'none';
+        document.getElementByID('specialLegend').style.display = 'block';
         // No filter: every tree is drawn.
         map.setFilter('trees-circles', null);
         // ['in', text, ['get', 'TAXA']] is true when the text appears in the tree's TAXA.
