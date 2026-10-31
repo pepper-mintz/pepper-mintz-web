@@ -284,8 +284,8 @@
         map.setLayoutProperty('trees-canopy', 'visibility', 'none');
         map.setLayoutProperty('trees-circles', 'visibility', 'visible');
         //now just adding the dynamic legend here so that when map is reset the legend gets reset too. 
-        document.getElementByID('firstLegend').style.display = 'block';
-        document.getElementByID('specialLegend').style.display = 'none';
+        document.getElementById('firstLegend').style.display = 'block';
+        document.getElementById('specialLegend').style.display = 'none';
       }
 
       function toggleCanopy(){
@@ -336,8 +336,8 @@
         //once the highlight function is triggered we want to switch which legend can be seen. 
         //but also if its an empty string we want that to be taken care of first, so this goes after
         //i kow how to find the element itself but had to google how to toggle it. (.style.display)
-        document.getElementByID('firstLegend').style.display = 'none';
-        document.getElementByID('specialLegend').style.display = 'block';
+        document.getElementById('firstLegend').style.display = 'none';
+        document.getElementById('specialLegend').style.display = 'block';
         // No filter: every tree is drawn.
         map.setFilter('trees-circles', null);
         // ['in', text, ['get', 'TAXA']] is true when the text appears in the tree's TAXA.
