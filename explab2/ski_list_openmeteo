@@ -1,0 +1,40 @@
+name,region,latitude,longitude,elevation,timezone,start_date,end_date
+Whistler Blackcomb,Pacific NW / BC,50.10101,-122.90301,1724,auto,2025-10-01,2026-04-30
+Mt. Baker,Pacific NW / BC,48.85762,-121.6667,1406,auto,2025-10-01,2026-04-30
+Mt. Hood,Pacific NW / BC,45.33553,-121.66446,1944,auto,2025-10-01,2026-04-30
+Mt. Bachelor,Pacific NW / BC,43.99677,-121.68014,2395,auto,2025-10-01,2026-04-30
+Kicking Horse,Interior BC / Alberta,51.28695,-117.06352,2037,auto,2025-10-01,2026-04-30
+Revelstoke,Interior BC / Alberta,50.96645,-118.11956,1654,auto,2025-10-01,2026-04-30
+Lake Louise,Interior BC / Alberta,51.45186,-116.14203,2311,auto,2025-10-01,2026-04-30
+Fernie,Interior BC / Alberta,49.46177,-115.098,1751,auto,2025-10-01,2026-04-30
+Big White,Interior BC / Alberta,49.73885,-118.93656,2018,auto,2025-10-01,2026-04-30
+Jackson Hole,Rockies / Intermountain,43.59889,-110.85044,2756,auto,2025-10-01,2026-04-30
+Big Sky,Rockies / Intermountain,45.27802,-111.43069,2961,auto,2025-10-01,2026-04-30
+Whitefish,Rockies / Intermountain,48.49837,-114.34436,1830,auto,2025-10-01,2026-04-30
+Sun Valley,Rockies / Intermountain,43.65781,-114.39948,2439,auto,2025-10-01,2026-04-30
+Alta,Rockies / Intermountain,40.57387,-111.64283,3012,auto,2025-10-01,2026-04-30
+Bridger Bowl,Rockies / Intermountain,45.81703,-110.92089,2260,auto,2025-10-01,2026-04-30
+Vail,Colorado,39.62154,-106.37077,3168,auto,2025-10-01,2026-04-30
+Aspen,Colorado,39.16437,-106.81996,3368,auto,2025-10-01,2026-04-30
+Telluride,Colorado,37.91636,-107.82817,3429,auto,2025-10-01,2026-04-30
+Steamboat,Colorado,40.45401,-106.75473,2843,auto,2025-10-01,2026-04-30
+Crested Butte,Colorado,38.89443,-106.94675,3253,auto,2025-10-01,2026-04-30
+Winter Park,Colorado,39.87576,-105.77426,3360,auto,2025-10-01,2026-04-30
+Taos,Southwest,36.58081,-105.45262,3352,auto,2025-10-01,2026-04-30
+Arizona Snowbowl,Southwest,35.32889,-111.69571,3270,auto,2025-10-01,2026-04-30
+Mammoth,Sierra Nevada,37.64497,-119.02895,3059,auto,2025-10-01,2026-04-30
+Palisades Tahoe Olympic Valley,Sierra Nevada,39.18964,-120.23636,2407,auto,2025-10-01,2026-04-30
+Alyeska,Alaska,60.96164,-149.0765,585,auto,2025-10-01,2026-04-30
+Stowe,Northeast,44.52602,-72.79557,875,auto,2025-10-01,2026-04-30
+Killington,Northeast,43.61093,-72.81092,959,auto,2025-10-01,2026-04-30
+Whiteface,Northeast,44.35997,-73.87824,1013,auto,2025-10-01,2026-04-30
+Gore,Northeast,43.67585,-74.025,835,auto,2025-10-01,2026-04-30
+Sugarloaf,Northeast,45.04165,-70.31322,988,auto,2025-10-01,2026-04-30
+Sugarbush,Northeast,44.13103,-72.91302,979,auto,2025-10-01,2026-04-30
+Tremblant,Eastern Canada,46.21805,-74.56278,668,auto,2025-10-01,2026-04-30
+Le Massif,Eastern Canada,47.27987,-70.5901,540,auto,2025-10-01,2026-04-30
+Blue Mountain,Eastern Canada,44.49789,-80.31304,378,auto,2025-10-01,2026-04-30
+Mont-Sainte-Anne,Eastern Canada,47.08593,-70.92884,595,auto,2025-10-01,2026-04-30
+Lutsen,Great Lakes,47.65146,-90.7284,433,auto,2025-10-01,2026-04-30
+Boyne,Great Lakes,45.16248,-84.93606,307,auto,2025-10-01,2026-04-30
+Snowshoe,Appalachia,38.41536,-79.99028,1325,auto,2025-10-01,2026-04-30
