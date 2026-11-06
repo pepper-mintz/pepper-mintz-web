@@ -15,9 +15,9 @@
     left: 30px;
     z-index: 1;
     background: #34405E;
-    color: #FFFFFF
+    color: #FFFFFF;
     padding: 15px;
-    border: 8px
+    border-radius: 8px;
     font: 13px sans-serif;
   }
     #hour-slider {
@@ -44,6 +44,35 @@
       center: [-73.95, 40.72],
       zoom: 10
     });
+     map.on('load', function (){
+      // this is to initialize the map at 7am to match the label
+    map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], 7]);
+    // connect hour html/css elements with JS
+    const slider = document.getElementById('hour-slider');
+    const slider_label = document.getElementById('hour-label');
+    // to make the slider interactve i used the previously linked website and also just google search to figure out what syntax is right for me
+    slider.addEventListener('input', function() {
+      const hour = Number(slider.value); 
+      // the value of the slider will come out as a string, so i used the number function to force it to switch to the right data type
+      map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], hour]);
+      let displayHour 
+      //regular, non-military humans dont read time as 0, 1, 2, etc. so im creating a variable to dispaly time nicely. 
+      //rather 12:00 AM. there are 2 cases where we'll have 12:00 so we need to diferentiate. using === as a strict match to double verify the Number function prev
+      //for pm (13, 14, etc) we need to subtract 12 to get 1, 2, etc.
+      if (hour === 0){
+        displayHour = '12:00 AM'}
+      else if (hour < 12){
+        displayHour = hour + ':00 AM'}
+      else if (hour === 12){
+        displayHour = '12:00 PM'}
+      else{
+        displayHour = (hour - 12) + ':00 PM'}
+
+      //set label to displayHour, using textContent from my last activity (ubc trees expanded)
+      slider_label.textContent = displayHour;
+    }); // close the slider event listener
+    }); // close map.on
+   
   </script>
 </body>
 </html>
