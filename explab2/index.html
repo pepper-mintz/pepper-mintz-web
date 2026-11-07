@@ -50,6 +50,10 @@
         <input type="checkbox" id="show-destinations">
         Destinations
       </label>
+      <label>
+        <input type="checkbox" id="show-balance">
+        Flow Balance
+      </label>
     </div>
       
   </div>
@@ -72,6 +76,8 @@
                              500, 7,
                              1000, 10,
                              5000, 18]);
+       // i just did the one layer in maputnik but im now realizing i need a second layer for destinations and a third for net arrivals. 
+       // syntax from https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#addlayer
        map.addLayer({
           id: 'destinations',
           type: 'circle',
@@ -88,12 +94,46 @@
            5000, 18],
           'circle-color': '#F0A15B', 
            'circle-opacity': .7}});
+       //because the raw counts of origins and destinations can get hectic, im adding a third layer which is 
+       //colored by the PROPORTION of riders departing or arriving from a station. it will scale with magnitude. 
+       //so flow balance = (destinations-origins)/(destinations+origins). 1 means all arrivals, -1 means all departures
+        //division by zero would throw errors. i was quite stumped here, so I did use AI for this one part. 
+        //It was just a single question, and im only using the template claude returned. it prompted me to make some variables and
+       //use a case expression to check if denom is non zero, in which case it allows the division to happen. very clever.
+       const total = [ '+', ['get', 'destinations'],
+                      ['get', 'sum_estimated_average_ridership']];
+       const balance = ['case', ['==', total, 0], 0,
+                        ['/', ['get', 'net_arrivals'], total]];
+                             
+       map.addLayer({
+          id: 'flow-balance',
+          type: 'circle',
+          source: 'MTA_OD_EL2',
+         filter: ['==', ['get', 'Hour of Day'], 7],
+         layout: {visibility:'none'},
+         paint: {
+           'circle-radius': ['interpolate', ['linear'], 
+           total,
+           0, 2,
+           100, 4,
+           500, 7,
+           1000, 10,
+           5000, 18],
+          'circle-color': ['interpolate', ['linear'],
+                           balance,
+                           -1, '#05FFE1',//the turqoise (from maputnik)
+                           0, '#BAC2CD', //a neutral grey
+                           1, '#F0A15B'], //the orange form earlier
+                           
+           'circle-opacity': .7}});
+       
     // connect hour html/css elements with JS
        const slider = document.getElementById('hour-slider');
        const slider_label = document.getElementById('hour-label');
     // connect origin and destination checkboxes
        const origins_checkbox = document.getElementById('show-origins');
        const destinations_checkbox = document.getElementById('show-destinations');
+       const balance_checkbox = document.getElementById('show-balance');
        
     // to make the slider interactve i used the previously linked website and also just google search to figure out what syntax is right for me
     slider.addEventListener('input', function() {
@@ -102,6 +142,29 @@
       map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], hour]);
       // even when the destinations layer is invisible i still want it to update alongside arrivals
       map.setFilter('destinations', ['==', ['get', 'Hour of Day'], hour]);
+      map.setFilter('flow-balance', ['==', ['get', 'Hour of Day'], hour]);
+      //visibiity behaviour is very particular. i want users to be able to see origins, destinations as one, the other, or both
+      // but i want the flow-balance to only be seeon its own, ie when it is triggered the other two need to turn off. 
+      //compsci 103 taught me about helper functions conceptually so ill make one. this one is pretty intuitive
+      function updateVisibility(){
+        if (balance_checkbox.checked){
+          //for when balance mode is on
+          map.setLayoutProperty('flow-balance', 'visibility', 'visible');
+          map.setLayoutProperty('origin-destination', 'visibility', 'none');
+          map.setLayoutProperty('destinations', 'visibility', 'none');
+          //we also want the other two boxes to be unusable when this is on. 
+          origins_checkbox.disabled = true;
+          destinations_checkbox.disabled = true;}
+        else {//when the balance box is unchecked
+          //origin/destination mode
+          map.setLayoutProperty('flow-balance', 'visibility', 'none');
+          //ensure the following checboxes are online 
+          origins_checkbox.disabled = false;
+          destinations_checkbox.disabled = false;
+          //now we just have to display the right layers when the checkboxes are on a certain way
+          // instead of visible or none, make the visibility dependent on 
+          map.setLayoutProperty('origin-destination', 'visibility', );
+
       let displayHour 
       //regular, non-military humans dont read time as 0, 1, 2, etc. so im creating a variable to dispaly time nicely. 
       //rather 12:00 AM. there are 2 cases where we'll have 12:00 so we need to diferentiate. using === as a strict match to double verify the Number function prev
