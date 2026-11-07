@@ -89,13 +89,19 @@
           'circle-color': '#F0A15B', 
            'circle-opacity': .7}});
     // connect hour html/css elements with JS
-    const slider = document.getElementById('hour-slider');
-    const slider_label = document.getElementById('hour-label');
+       const slider = document.getElementById('hour-slider');
+       const slider_label = document.getElementById('hour-label');
+    // connect origin and destination checkboxes
+       const origins_checkbox = document.getElementById('show-origins');
+       const origins_checkbox = document.getElementById('show-destinations');
+       
     // to make the slider interactve i used the previously linked website and also just google search to figure out what syntax is right for me
     slider.addEventListener('input', function() {
       const hour = Number(slider.value); 
       // the value of the slider will come out as a string, so i used the number function to force it to switch to the right data type
       map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], hour]);
+      // even when the destinations layer is invisible i still want it to update alongside arrivals
+      map.setFilter('destinations', ['==', ['get', 'Hour of Day'], hour]);
       let displayHour 
       //regular, non-military humans dont read time as 0, 1, 2, etc. so im creating a variable to dispaly time nicely. 
       //rather 12:00 AM. there are 2 cases where we'll have 12:00 so we need to diferentiate. using === as a strict match to double verify the Number function prev
@@ -112,6 +118,21 @@
       //set label to displayHour, using textContent from my last activity (ubc trees expanded)
       slider_label.textContent = displayHour;
     }); // close the slider event listener
+       //need to make the data appear or disappear when the checkboxes are clicked. google says the listener for checkboxes is 'change'
+       //using setLayoutProperty which i learned in the ubc trees expansion and lab 1. 
+       origins_checkbox.addEventListener('change', function(){
+         if (origins_checkbox.checked) {
+           map.setLayoutProperty('origin-destination', 'visibility', 'visible');}
+         else {
+           map.setLayoutProperty('origin-destination', 'visibility', 'none');}
+       })
+       destinations_checkbox.addEventListener('change', function(){
+         if (destinations_checkbox.checked) {
+           map.setLayoutProperty('destinations', 'visibility', 'visible');}
+         else {
+           map.setLayoutProperty('destinations', 'visibility', 'none');}
+
+       })
     }); // close map.on
    
   </script>
