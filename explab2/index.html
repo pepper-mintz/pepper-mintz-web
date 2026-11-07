@@ -43,7 +43,7 @@
     initial value is 7 which is arbitrary, and we only have hourly data so the step is 1.  -->
     <div id="o-d-controls">
       <label>
-        <input type="checkbox" id="show-origins" checked>
+        <input type="checkbox" id="show-origins">
         Origins
       </label>
       <label>
@@ -51,7 +51,7 @@
         Destinations
       </label>
       <label>
-        <input type="checkbox" id="show-balance">
+        <input type="checkbox" id="show-balance" checked>
         Flow Balance
       </label>
     </div>
@@ -163,7 +163,14 @@
           destinations_checkbox.disabled = false;
           //now we just have to display the right layers when the checkboxes are on a certain way
           // instead of visible or none, make the visibility dependent on 
-          map.setLayoutProperty('origin-destination', 'visibility', );
+          if (origins_checkbox.checked){
+            map.setLayoutProperty('origin-destination', 'visibility', 'visible');}
+          else {
+            map.setLayoutProperty('origin-destination', 'visibility', 'none');}
+          if (destinations_checkbox.checked){
+            map.setLayoutProperty('destinations', 'visibility', 'visible');}
+          else {
+            map.setLayoutProperty('destinations', 'visibility', 'none');}
 
       let displayHour 
       //regular, non-military humans dont read time as 0, 1, 2, etc. so im creating a variable to dispaly time nicely. 
@@ -184,18 +191,16 @@
        //need to make the data appear or disappear when the checkboxes are clicked. google says the listener for checkboxes is 'change'
        //using setLayoutProperty which i learned in the ubc trees expansion and lab 1. 
        origins_checkbox.addEventListener('change', function(){
-         if (origins_checkbox.checked) {
-           map.setLayoutProperty('origin-destination', 'visibility', 'visible');}
-         else {
-           map.setLayoutProperty('origin-destination', 'visibility', 'none');}
+         updateVisibility()
        })
        destinations_checkbox.addEventListener('change', function(){
-         if (destinations_checkbox.checked) {
-           map.setLayoutProperty('destinations', 'visibility', 'visible');}
-         else {
-           map.setLayoutProperty('destinations', 'visibility', 'none');}
+         updateVisibility()
 
        })
+        balance_checkbox.addEventListener('change', function(){
+          updateVisibility()
+        })
+        updateVisibility()
     }); // close map.on
    
   </script>
