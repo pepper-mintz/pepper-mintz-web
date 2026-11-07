@@ -43,7 +43,7 @@
     initial value is 7 which is arbitrary, and we only have hourly data so the step is 1.  -->
     <div id="o-d-controls">
       <label>
-        <input type="checkbox" id="show-origins">
+        <input type="checkbox" id="show-origins" checked>
         Origins
       </label>
       <label>
@@ -134,19 +134,7 @@
        const origins_checkbox = document.getElementById('show-origins');
        const destinations_checkbox = document.getElementById('show-destinations');
        const balance_checkbox = document.getElementById('show-balance');
-       
-    // to make the slider interactve i used the previously linked website and also just google search to figure out what syntax is right for me
-    slider.addEventListener('input', function() {
-      const hour = Number(slider.value); 
-      // the value of the slider will come out as a string, so i used the number function to force it to switch to the right data type
-      map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], hour]);
-      // even when the destinations layer is invisible i still want it to update alongside arrivals
-      map.setFilter('destinations', ['==', ['get', 'Hour of Day'], hour]);
-      map.setFilter('flow-balance', ['==', ['get', 'Hour of Day'], hour]);
-      //visibiity behaviour is very particular. i want users to be able to see origins, destinations as one, the other, or both
-      // but i want the flow-balance to only be seeon its own, ie when it is triggered the other two need to turn off. 
-      //compsci 103 taught me about helper functions conceptually so ill make one. this one is pretty intuitive
-      function updateVisibility(){
+       function updateVisibility(){
         if (balance_checkbox.checked){
           //for when balance mode is on
           map.setLayoutProperty('flow-balance', 'visibility', 'visible');
@@ -170,7 +158,19 @@
           if (destinations_checkbox.checked){
             map.setLayoutProperty('destinations', 'visibility', 'visible');}
           else {
-            map.setLayoutProperty('destinations', 'visibility', 'none');}
+            map.setLayoutProperty('destinations', 'visibility', 'none');}}}
+    // to make the slider interactve i used the previously linked website and also just google search to figure out what syntax is right for me
+    slider.addEventListener('input', function() {
+      const hour = Number(slider.value); 
+      // the value of the slider will come out as a string, so i used the number function to force it to switch to the right data type
+      map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], hour]);
+      // even when the destinations layer is invisible i still want it to update alongside arrivals
+      map.setFilter('destinations', ['==', ['get', 'Hour of Day'], hour]);
+      map.setFilter('flow-balance', ['==', ['get', 'Hour of Day'], hour]);
+      //visibiity behaviour is very particular. i want users to be able to see origins, destinations as one, the other, or both
+      // but i want the flow-balance to only be seeon its own, ie when it is triggered the other two need to turn off. 
+      //compsci 103 taught me about helper functions conceptually so ill make one. this one is pretty intuitive
+      
 
       let displayHour 
       //regular, non-military humans dont read time as 0, 1, 2, etc. so im creating a variable to dispaly time nicely. 
