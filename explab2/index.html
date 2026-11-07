@@ -47,6 +47,14 @@
      map.on('load', function (){
       // this is to initialize the map at 7am to match the label
     map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], 7]);
+    // link paint properties to the number of origins from a stop at a given hour. setPaintProperty template taken from ubc trees assignemnt. 
+       map.setPaintProperty('origin-destination', 'circle-radius', 
+                            ['interpolate', ['linear'], ['get', 'sum_estimated_average_ridership'],
+                             0, 2,
+                             100, 4,
+                             500, 7,
+                             1000, 10,
+                             5000, 18]);
     // connect hour html/css elements with JS
     const slider = document.getElementById('hour-slider');
     const slider_label = document.getElementById('hour-label');
