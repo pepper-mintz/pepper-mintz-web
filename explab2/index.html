@@ -31,6 +31,29 @@
       gap: 20px;
       margin-top: 15px;
     }
+    /* legend is adapted from maplibreing ubc */
+    #legend {
+      position: absolute;
+      bottom: 30px;
+      right: 15px;
+      z-index: 1;
+      background: #34405E;
+      padding: 15px;
+      border-radius: 8px;
+      font: 13px sans-serif;
+      width: 230px;
+    }
+    #legend div {
+      margin-top: 6px;
+    }
+    /* legend circles for origins/destination layers, also addapted from maplibreing ubc*/
+    .dot{
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
 </style>
 </head>
 <body>
@@ -55,9 +78,48 @@
         Flow Balance
       </label>
     </div>
-      
-  </div>
 
+
+  </div>
+<!-- im going to need 2 legends, one for the flow balance layer and another for the raw departures/arrivals layer -->
+
+<!-- div for flow balance legend  -->
+  <div id="legend">
+    <b>Passenger Flows</b>
+    <!-- bolding that as the header -->
+    <div id="balance-legend">
+      <div>
+        <span class="dot" style="background:#05FFE1"></span>
+        <!-- the turqoise shows where people are leaving from -->
+        Net Departures
+      </div>
+      <div>
+        <span class="dot" style="background:#BAC2CD"></span>
+        <!-- neutral tone for balanced flow -->
+        Balanced Flow
+      </div>
+      <div>
+        <span class="dot" style="background:#F0A15B"></span>
+        <!-- orange shows where people are arriving at-->
+        Net Arrivals
+      </div>
+      <p>Circle size represents total station activity</p>
+    </div>
+<!-- div for raw dep/arr legend, we want it initialized but hidden until the layer is triggered -->
+    <div id="o-d-legend" style="display:none">
+      <div>
+        <span class="dot" style="background:#05FFE1"></span>
+        Origins
+      </div>
+      <div>
+        <span class="dot" style="background:#F0A15B"></span>
+        Destinations
+      </div>
+      <p>Circle size represents estimated passenger volume</p>
+    </div>
+  </div>
+    
+      
   <script>
     const map = new maplibregl.Map({
       container: 'map',
@@ -69,7 +131,7 @@
       // this is to initialize the map at 7am to match the label
     map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], 7]);
     // link paint properties to the number of origins from a stop at a given hour. setPaintProperty template taken from ubc trees assignemnt. 
-       map.setPaintProperty('origin-destination', 'circle-radius', ['*', 0.14, ['sqrt', ['get', 'sum_estimated_average_ridership']]]);
+       map.setPaintProperty('origin-destination', 'circle-radius', ['max', 3.25 ['*' .175, ['sqrt', ['get', 'sum_estimated_average_ridership']]]]);
        // i just did the one layer in maputnik but im now realizing i need a second layer for destinations and a third for net arrivals. 
        // syntax from https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#addlayer
        map.addLayer({
@@ -79,7 +141,7 @@
          filter: ['==', ['get', 'Hour of Day'], 7],
          layout: {visibility:'none'},
          paint: {
-           'circle-radius': ['*', 0.14, ['sqrt', ['get', 'destinations']]], 
+           'circle-radius': ['max', 3.25, ['*'. .175, ['sqrt', ['get', 'destinations']]]], 
 //we want area to scale with proportion, not radius. the .1 is an arbitrary scale factor i tinkered down to. 
           'circle-color': '#F0A15B', 
            'circle-opacity': .7}});
@@ -116,6 +178,8 @@
        const origins_checkbox = document.getElementById('show-origins');
        const destinations_checkbox = document.getElementById('show-destinations');
        const balance_checkbox = document.getElementById('show-balance');
+       const balance_legend = document.getElementById('balance-legend');
+       const o_d_legend = document.getElementById('o-d-legend');
        function updateVisibility(){
         if (balance_checkbox.checked){
           //for when balance mode is on
@@ -124,13 +188,20 @@
           map.setLayoutProperty('destinations', 'visibility', 'none');
           //we also want the other two boxes to be unusable when this is on. 
           origins_checkbox.disabled = true;
-          destinations_checkbox.disabled = true;}
+          destinations_checkbox.disabled = true;
+          // learned .style.display when doing the dynamic legend for filtering maplibre ubc
+          balance_legend.style.display = 'block';
+          volume_legend.style.display = 'none';
+        
+        }
         else {//when the balance box is unchecked
           //origin/destination mode
           map.setLayoutProperty('flow-balance', 'visibility', 'none');
           //ensure the following checboxes are online 
           origins_checkbox.disabled = false;
           destinations_checkbox.disabled = false;
+          balance_legend.style.display = 'none';
+          volume_legend.style.display = 'block';
           //now we just have to display the right layers when the checkboxes are on a certain way
           // instead of visible or none, make the visibility dependent on 
           if (origins_checkbox.checked){
