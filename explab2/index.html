@@ -38,6 +38,7 @@
       right: 15px;
       z-index: 1;
       background: #34405E;
+      color: #FFFFFF;
       padding: 15px;
       border-radius: 8px;
       font: 13px sans-serif;
@@ -131,7 +132,7 @@
       // this is to initialize the map at 7am to match the label
     map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], 7]);
     // link paint properties to the number of origins from a stop at a given hour. setPaintProperty template taken from ubc trees assignemnt. 
-       map.setPaintProperty('origin-destination', 'circle-radius', ['max', 3.25 ['*' .175, ['sqrt', ['get', 'sum_estimated_average_ridership']]]]);
+       map.setPaintProperty('origin-destination', 'circle-radius', ['max', 3.25, ['*', .175, ['sqrt', ['get', 'sum_estimated_average_ridership']]]]);
        // i just did the one layer in maputnik but im now realizing i need a second layer for destinations and a third for net arrivals. 
        // syntax from https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#addlayer
        map.addLayer({
@@ -141,7 +142,7 @@
          filter: ['==', ['get', 'Hour of Day'], 7],
          layout: {visibility:'none'},
          paint: {
-           'circle-radius': ['max', 3.25, ['*'. .175, ['sqrt', ['get', 'destinations']]]], 
+           'circle-radius': ['max', 3.25, ['*', .175, ['sqrt', ['get', 'destinations']]]], 
 //we want area to scale with proportion, not radius. the .1 is an arbitrary scale factor i tinkered down to. 
           'circle-color': '#F0A15B', 
            'circle-opacity': .7}});
@@ -191,7 +192,7 @@
           destinations_checkbox.disabled = true;
           // learned .style.display when doing the dynamic legend for filtering maplibre ubc
           balance_legend.style.display = 'block';
-          volume_legend.style.display = 'none';
+          o_d_legend.style.display = 'none';
         
         }
         else {//when the balance box is unchecked
@@ -201,7 +202,7 @@
           origins_checkbox.disabled = false;
           destinations_checkbox.disabled = false;
           balance_legend.style.display = 'none';
-          volume_legend.style.display = 'block';
+          o_d_legend.style.display = 'block';
           //now we just have to display the right layers when the checkboxes are on a certain way
           // instead of visible or none, make the visibility dependent on 
           if (origins_checkbox.checked){
