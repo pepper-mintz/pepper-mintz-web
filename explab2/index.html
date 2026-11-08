@@ -69,13 +69,7 @@
       // this is to initialize the map at 7am to match the label
     map.setFilter('origin-destination', ['==', ['get', 'Hour of Day'], 7]);
     // link paint properties to the number of origins from a stop at a given hour. setPaintProperty template taken from ubc trees assignemnt. 
-       map.setPaintProperty('origin-destination', 'circle-radius', 
-                            ['interpolate', ['linear'], ['get', 'sum_estimated_average_ridership'],
-                             0, 2,
-                             100, 4,
-                             500, 7,
-                             1000, 10,
-                             5000, 18]);
+       map.setPaintProperty('origin-destination', 'circle-radius', ['*', 0.2, ['sqrt', ['get', 'sum_estimated_average_ridership']]]);
        // i just did the one layer in maputnik but im now realizing i need a second layer for destinations and a third for net arrivals. 
        // syntax from https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#addlayer
        map.addLayer({
@@ -85,13 +79,8 @@
          filter: ['==', ['get', 'Hour of Day'], 7],
          layout: {visibility:'none'},
          paint: {
-           'circle-radius': ['interpolate', ['linear'], 
-           ['get', 'destinations'],
-           0, 2,
-           100, 4,
-           500, 7,
-           1000, 10,
-           5000, 18],
+           'circle-radius': ['*', 0.2, ['sqrt', ['get', 'destinations']]], 
+//we want area to scale with proportion, not radius. the .2 is an arbitrary scale factor i tinkered down to. 
           'circle-color': '#F0A15B', 
            'circle-opacity': .7}});
        //because the raw counts of origins and destinations can get hectic, im adding a third layer which is 
@@ -112,13 +101,7 @@
          filter: ['==', ['get', 'Hour of Day'], 7],
          layout: {visibility:'none'},
          paint: {
-           'circle-radius': ['interpolate', ['linear'], 
-           total,
-           0, 2,
-           100, 4,
-           500, 7,
-           1000, 10,
-           5000, 18],
+           'circle-radius': ['*', 0.2, ['sqrt', total]],
           'circle-color': ['interpolate', ['linear'],
                            balance,
                            -1, '#05FFE1',//the turqoise (from maputnik)
