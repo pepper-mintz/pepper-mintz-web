@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>NYC's Subway Passanger Flows - Fridays of April, 2026</title>
+  <title>NYC's Subway Passenger Flows - Fridays of April, 2026</title>
   <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <style>
@@ -104,7 +104,7 @@
         <!-- orange shows where people are arriving at-->
         Net Arrivals
       </div>
-      <p>Circle size represents total station activity</p>
+      <p>Circle size represents total station activity. Circle colour is divergent on a continuum.</p>
     </div>
 <!-- div for raw dep/arr legend, we want it initialized but hidden until the layer is triggered -->
     <div id="o-d-legend" style="display:none">
@@ -116,7 +116,7 @@
         <span class="dot" style="background:#F0A15B"></span>
         Destinations
       </div>
-      <p>Circle size represents estimated passenger volume</p>
+      <p>Circle size represents estimated passenger volume. Color is nominal.</p>
     </div>
   </div>
     
@@ -149,13 +149,10 @@
        //because the raw counts of origins and destinations can get hectic, im adding a third layer which is 
        //colored by the PROPORTION of riders departing or arriving from a station. it will scale with magnitude. 
        //so flow balance = (destinations-origins)/(destinations+origins). 1 means all arrivals, -1 means all departures
-        //division by zero would throw errors. i was quite stumped here, so I did use AI for this one part. 
-        //It was just a single question, and im only using the template claude returned. it prompted me to make some variables and
-       //use a case expression to check if denom is non zero, in which case it allows the division to happen. very clever.
+       
        const total = [ '+', ['get', 'destinations'],
                       ['get', 'sum_estimated_average_ridership']];
-       const balance = ['case', ['==', total, 0], 0,
-                        ['/', ['get', 'net_arrivals'], total]];
+       const balance = ['/', ['get', 'net_arrivals'], total];
                              
        map.addLayer({
           id: 'flow-balance',
